@@ -1,14 +1,11 @@
-from rich.console import Console
-from rich.layout import Layout
+from rich.console import Console, Group
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
-from rich.align import Align
 from rich.prompt import Prompt
-from rich.columns import Columns
+from rich.align import Align
 from rich import box
 import os
-import time
 
 from .models.card import Card
 from .models.player import Player, Dealer
@@ -19,129 +16,194 @@ class BlackjackUI:
     def __init__(self):
         self.console = console
 
-    def clear(self):
-        # Cross-platform clear
-        os.system('cls' if os.name == 'nt' else 'clear')
-
     def get_card_color(self, card: Card) -> str:
         if card.suit in ['Hearts', 'Diamonds']:
             return "red"
         return "white"
 
-    def render_card(self, card: Card, hidden: bool = False) -> Panel:
-        if hidden:
-            content = Text("\n\n  ??  \n\n", justify="center", style="bold blue")
-            return Panel(content, width=10, height=7, title="Card", style="bold blue")
+    def render_hidden_card(self, is_last: bool) -> tuple:
+        """Render a gothic-style card back for hidden cards."""
+        if is_last:
+            return (
+                "┌─────┐",
+                "│░▒▓▒░│",
+                "│▓ ╳ ▓│",
+                "│░▒▓▒░│",
+                "└─────┘"
+            )
+        else:
+            return (
+                "┌───",
+                "│░▒▓",
+                "│▓ ╳",
+                "│░▒▓",
+                "└───"
+            )
 
-        color = self.get_card_color(card)
-        rank = card.rank_symbol
-        suit = card.symbol
+    def render_cards_ascii(self, cards: list, hide_second: bool = False) -> Text:
+        """Render cards in overlapping ASCII art style."""
+        if not cards:
+            # Return empty text for empty boards
+            return Text("")
         
-        # ASCII Art representation for the card inside a panel
-        # Top Left
-        top = f"{rank}{suit}"
-        # Bottom Right
-        bottom = f"{suit}{rank}"
+        lines = ["", "", "", "", ""]
+        result = Text()
         
-        # Center big suit
-        center = f"{suit}"
+        for i, card in enumerate(cards):
+            is_last = (i == len(cards) - 1)
+            is_hidden = (i == 1 and hide_second)
+            
+            if is_hidden:
+                back = self.render_hidden_card(is_last)
+                for j in range(5):
+                    lines[j] += back[j]
+            else:
+                color = self.get_card_color(card)
+                rank = card.rank_symbol
+                suit = card.symbol
+                
+                if is_last:
+                    lines[0] += "┌─────┐"
+                    lines[1] += f"│{rank:<2}   │"
+                    lines[2] += f"│  {suit}  │"
+                    lines[3] += f"│   {rank:>2}│"
+                    lines[4] += "└─────┘"
+                else:
+                    lines[0] += "┌───"
+                    lines[1] += f"│{rank:<2} "
+                    lines[2] += f"│ {suit} "
+                    lines[3] += "│   "
+                    lines[4] += "└───"
+        
+        for j, line in enumerate(lines):
+            result.append(line + ("\n" if j < 4 else ""), style="bold")
+        
+        return result
 
-        grid = Table.grid(expand=True)
-        grid.add_column(justify="left")
-        grid.add_column(justify="center")
-        grid.add_column(justify="right")
+    def build_info_panel(self, player: Player, game_status: str, message: str = "", bet_result: str = "") -> Panel:
+        """Build the left info panel with centered suits and bottom status."""
+        # Panel width=15, borders=2, so inner=13, but visually center needs adjustment
+        inner_width = 11
         
-        grid.add_row(f"[{color}]{top}[/{color}]", "", "")
-        grid.add_row("", "", "")
-        grid.add_row("", f"[{color}]{center}[/{color}]", "")
-        grid.add_row("", "", "")
-        grid.add_row("", "", f"[{color}]{bottom}[/{color}]")
-
-        return Panel(grid, width=12, height=7, style=f"bold {color}", border_style=f"{color}")
-
-    def display_table(self, player: Player, dealer: Dealer, game_status: str, message: str = ""):
-        self.clear()
+        info_text = Text()
         
-        # Main Layout
-        layout = Layout()
-        layout.split(
-            Layout(name="header", size=3),
-            Layout(name="dealer_area", ratio=1),
-            Layout(name="info_area", size=3),
-            Layout(name="player_area", ratio=1),
-            Layout(name="footer", size=5)
+        # Center-aligned suits
+        suits = "♠ ♥ ♦ ♣"
+        info_text.append(suits.center(inner_width) + "\n\n", style="bold white")
+        
+        # Chips and Bet display
+        info_text.append("Chips ", style="dim")
+        info_text.append(f"${player.chips}\n", style="bold green")
+        
+        # Bet display - show +/- on result
+        info_text.append("Bet   ", style="dim")
+        if bet_result:
+            bet_color = "green" if bet_result.startswith("+") else "red"
+            info_text.append(f"{bet_result}\n", style=f"bold {bet_color}")
+        else:
+            info_text.append(f"${player.bet}\n", style="bold yellow")
+        
+        # Message in middle if present
+        if message:
+            info_text.append("\n", style="dim")
+            msg_centered = message.center(inner_width)
+            msg_color = "green" if "Win" in message else ("red" if "Bust" in message or "Lose" in message or "Dealer" in message else "white")
+            info_text.append(msg_centered + "\n", style=f"bold {msg_color}")
+        
+        # Spacer to push status to bottom
+        spacer_lines = 4 if message else 6
+        info_text.append("\n" * spacer_lines, style="dim")
+        
+        # Status at bottom, centered
+        status_color = {
+            "playing": "cyan",
+            "betting": "yellow", 
+            "dealer_turn": "magenta",
+            "finished": "green"
+        }.get(game_status, "white")
+        
+        status_centered = game_status.upper().center(inner_width)
+        info_text.append(status_centered, style=f"bold {status_color}")
+        
+        return Panel(
+            info_text,
+            title="[bold]BLACKJACK[/bold]",
+            border_style="white",
+            width=15,
+            height=14
         )
 
-        # Header
-        layout["header"].update(Panel(Align.center("[bold gold1]TERMINAL BLACKJACK[/bold gold1]"), style="blue"))
+    def build_board_panel(self, name: str, cards: list, value, hide_second: bool = False) -> Panel:
+        """Build a card board panel."""
+        cards_display = self.render_cards_ascii(cards, hide_second)
+        
+        return Panel(
+            cards_display,
+            title=f"[bold green]{name}[/bold green] [dim]({value})[/dim]",
+            border_style="green",
+            width=34,
+            height=7,
+            padding=(0, 1)
+        )
 
-        # Dealer Area
-        dealer_cards = []
-        for i, card in enumerate(dealer.hand):
-            # Hide dealer's second card if game is active and not showing yet
-            # For simplicity, we'll let the game logic pass a 'reveal' flag, but here we assume
-            # dealer.hand[1] is hidden if status is 'playing'
-            # ACTUALLY: Easier to let Game Logic handle hiding by passing a dummy card or flag.
-            # But standard blackjack: Dealer shows one card up, one down.
-            # We'll implement a 'hide_hole_card' logic in the UI render parameter.
-            is_hole_card = (i == 1 and game_status == "playing")
-            dealer_cards.append(self.render_card(card, hidden=is_hole_card))
+    def build_game_layout(self, player: Player, dealer: Dealer, game_status: str, message: str = "", bet_result: str = "") -> Table:
+        """Build the complete game layout."""
+        info_panel = self.build_info_panel(player, game_status, message, bet_result)
         
         dealer_val = "?" if game_status == "playing" else str(dealer.hand_value)
-        layout["dealer_area"].update(
-            Panel(
-                Align.center(Columns(dealer_cards)), 
-                title=f"DEALER (Value: {dealer_val})",
-                border_style="red"
-            )
-        )
+        hide_hole = (game_status == "playing")
+        dealer_panel = self.build_board_panel("DEALER", dealer.hand, dealer_val, hide_hole)
+        
+        player_panel = self.build_board_panel(player.name.upper(), player.hand, player.hand_value)
+        
+        right_grid = Table.grid(padding=0)
+        right_grid.add_column()
+        right_grid.add_row(dealer_panel)
+        right_grid.add_row(player_panel)
+        
+        main_grid = Table.grid(padding=0)
+        main_grid.add_column()
+        main_grid.add_column()
+        main_grid.add_row(info_panel, right_grid)
+        
+        return main_grid
 
-        # Info Area
-        info_text = f"Status: [bold cyan]{game_status.upper()}[/bold cyan] | Bet: [bold green]${player.bet}[/bold green] | Chips: [bold gold1]${player.chips}[/bold gold1]"
-        layout["info_area"].update(Align.center(Text.from_markup(info_text), vertical="middle"))
+    def clear_screen(self):
+        """Clear the terminal screen."""
+        os.system('cls' if os.name == 'nt' else 'clear')
 
-        # Player Area
-        player_cards = [self.render_card(c) for c in player.hand]
-        layout["player_area"].update(
-            Panel(
-                Align.center(Columns(player_cards)), 
-                title=f"{player.name.upper()} (Value: {player.hand_value})",
-                border_style="green"
-            )
-        )
-
-        # Footer / Messages
-        msg_panel = Panel(Align.center(message), title="Messages", style="white")
-        layout["footer"].update(msg_panel)
-
+    def display_table(self, player: Player, dealer: Dealer, game_status: str, message: str = "", bet_result: str = ""):
+        """Display the game table with screen clear for clean updates."""
+        self.clear_screen()
+        layout = self.build_game_layout(player, dealer, game_status, message, bet_result)
         self.console.print(layout)
 
     def get_bet(self, player_chips: int) -> int:
         while True:
-            bet_str = Prompt.ask(f"[bold]Enter bet amount[/bold] (Chips: [green]{player_chips}[/green])")
+            bet_str = Prompt.ask(f"[bold]Bet[/bold] [dim](${player_chips})[/dim]")
             if bet_str.isdigit():
                 bet = int(bet_str)
                 if 0 < bet <= player_chips:
                     return bet
-                self.console.print("[red]Invalid bet amount. check your chips.[/red]")
+                self.console.print("[red]Invalid bet.[/red]")
             else:
-                self.console.print("[red]Please enter a valid number.[/red]")
+                self.console.print("[red]Enter a number.[/red]")
 
     def get_action(self, can_surrender: bool = False) -> str:
-        options = "[cyan]H[/cyan]it, [cyan]S[/cyan]tand"
+        options = "[cyan]H[/cyan]it / [cyan]S[/cyan]tand"
         choices_list = ["h", "s", "H", "S"]
         
         if can_surrender:
-            options += ", S[cyan]u[/cyan]rrender"
+            options += " / S[cyan]u[/cyan]rrender"
             choices_list.extend(["u", "U"])
 
         action = Prompt.ask(f"[bold]Action?[/bold] ({options})", choices=choices_list, default="h")
         return action.lower()
 
     def show_message(self, message: str, style: str = "white"):
-        self.console.print(Panel(message, style=style))
-        time.sleep(1.5)
+        """Show message - kept for compatibility but not used for win/loss."""
+        pass  # Win/loss now shown in info panel
 
     def ask_play_again(self) -> bool:
-        ans = Prompt.ask("Play another round?", choices=["y", "n"], default="y")
+        ans = Prompt.ask("[bold]Another round?[/bold]", choices=["y", "n"], default="y")
         return ans.lower() == 'y'
