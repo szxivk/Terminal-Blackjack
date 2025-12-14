@@ -127,13 +127,13 @@ class BlackjackUI:
             else:
                 self.console.print("[red]Please enter a valid number.[/red]")
 
-    def get_action(self, can_double: bool = False) -> str:
+    def get_action(self, can_surrender: bool = False) -> str:
         options = "[cyan]H[/cyan]it, [cyan]S[/cyan]tand"
         choices_list = ["h", "s", "H", "S"]
         
-        if can_double:
-            options += ", [cyan]D[/cyan]ouble"
-            choices_list.extend(["d", "D"])
+        if can_surrender:
+            options += ", S[cyan]u[/cyan]rrender"
+            choices_list.extend(["u", "U"])
 
         action = Prompt.ask(f"[bold]Action?[/bold] ({options})", choices=choices_list, default="h")
         return action.lower()

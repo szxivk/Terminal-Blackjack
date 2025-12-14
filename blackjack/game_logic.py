@@ -50,28 +50,18 @@ class BlackjackGame:
         # Check dealer peek (if needed, simplified here)
         
         if p_val == 21:
-            self.ui.display_table(self.player, self.dealer, "finished")
-            if d_val == 21:
-                self.ui.show_message("Push! Both have Blackjack.", "yellow")
-                self.player.push_bet()
-            else:
-                self.ui.show_message("BLACKJACK! You win 3:2!", "bold gold1")
-                self.player.win_bet(1.5)
-            self.ui.ask_play_again() # Just to pause? No, return control
-            return
+             # Just show table, no auto-win (game continues unless logic dictates otherwise, but 21 usually means wait for dealer)
+             # Actually, if player has 21, they can stand. Let's let them play (stand basically).
+             pass
 
         # 4. Player Turn
         first_action = True
         while not self.player.is_busted:
             self.ui.display_table(self.player, self.dealer, "playing")
             
-            # Construct choices based on state
-            choices = ["h", "s"]
-            if first_action and self.player.chips >= self.player.bet:
-                choices.append("d")
-            
-            action = self.ui.get_action(can_double=first_action)
-            first_action = False # No longer first action
+            # Simple Hit or Stand
+            action = self.ui.get_action(can_surrender=first_action)
+            first_action = False
             
             if action in ['h', 'hit']:
                 self.player.add_card(self.deck.deal())
@@ -80,23 +70,14 @@ class BlackjackGame:
                     self.ui.show_message("You Busted!", "red")
                     self.player.lose_bet()
                     return
-            
-            elif action in ['d', 'double']:
-                if self.player.chips >= self.player.bet:
-                    self.player.chips -= self.player.bet
-                    self.player.bet *= 2
-                    self.player.add_card(self.deck.deal())
-                    self.ui.display_table(self.player, self.dealer, "playing", "Doubled Down!")
-                    time.sleep(1)
-                    if self.player.is_busted:
-                        self.ui.display_table(self.player, self.dealer, "finished", "BUSTED!")
-                        self.ui.show_message("You Busted!", "red")
-                        self.player.lose_bet()
-                        return
-                    break # End turn after double
-                else:
-                    self.ui.show_message("Not enough chips to double!", "red")
 
+            elif action in ['u', 'surrender']:
+                # Surrender: Lose half bet
+                self.player.chips += (self.player.bet // 2)
+                self.player.bet = 0 # Hand over
+                self.ui.show_message("Surrendered!", "yellow")
+                return # End round immediately
+            
             elif action in ['s', 'stand']:
                 break
         

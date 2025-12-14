@@ -1,11 +1,11 @@
 # Terminal Blackjack
 
-A featured-packed, modern terminal-based Blackjack game written in Python.
+A beautiful, simplified terminal-based Blackjack game written in Python.
 
 ## Features
 
 - **Beautiful UI**: Powered by [Rich](https://github.com/Textualize/rich), featuring colored cards and responsive layout.
-- **Robust Logic**: Complete implementation of core Blackjack rules including Hit, Stand, and Double Down.
+- **Simple Gameplay**: Focus on the core mechanics - Hit or Stand.
 - **Cross-Platform**: Designed for Linux and Windows terminals.
 
 ## Installation
