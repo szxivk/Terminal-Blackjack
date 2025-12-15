@@ -178,6 +178,45 @@ class BlackjackUI:
         layout = self.build_game_layout(player, dealer, game_status, message, bet_result)
         self.console.print(layout)
 
+    def show_main_menu(self) -> str:
+        """Show main menu with arrow key navigation."""
+        import questionary
+        from questionary import Style
+        
+        custom_style = Style([
+            ('qmark', 'fg:yellow bold'),
+            ('question', 'fg:white bold'),
+            ('answer', 'fg:green bold'),
+            ('pointer', 'fg:green bold'),
+            ('highlighted', 'fg:green bold'),
+            ('selected', 'fg:green'),
+        ])
+        
+        choices = [
+            "► Play Game",
+            "► Earn Chips",
+            "► About Game",
+            "► Exit"
+        ]
+        
+        result = questionary.select(
+            "Select an option:",
+            choices=choices,
+            style=custom_style,
+            instruction="(↑↓ to move, Enter to select)"
+        ).ask()
+        
+        if result is None:
+            return "exit"
+        elif "Play" in result:
+            return "play"
+        elif "Earn" in result:
+            return "earn"
+        elif "About" in result:
+            return "about"
+        else:
+            return "exit"
+
     def get_bet(self, player_chips: int) -> int:
         while True:
             bet_str = Prompt.ask(f"[bold]Bet[/bold] [dim](${player_chips})[/dim]")
@@ -190,20 +229,56 @@ class BlackjackUI:
                 self.console.print("[red]Enter a number.[/red]")
 
     def get_action(self, can_surrender: bool = False) -> str:
-        options = "[cyan]H[/cyan]it / [cyan]S[/cyan]tand"
-        choices_list = ["h", "s", "H", "S"]
+        """Get player action using arrow key selection."""
+        import questionary
+        from questionary import Style
         
+        custom_style = Style([
+            ('pointer', 'fg:green bold'),
+            ('highlighted', 'fg:green bold'),
+            ('selected', 'fg:green bold'),
+        ])
+        
+        choices = ["► Hit", "► Stand"]
         if can_surrender:
-            options += " / S[cyan]u[/cyan]rrender"
-            choices_list.extend(["u", "U"])
-
-        action = Prompt.ask(f"[bold]Action?[/bold] ({options})", choices=choices_list, default="h")
-        return action.lower()
+            choices.append("► Surrender")
+        
+        result = questionary.select(
+            "Your move:",
+            choices=choices,
+            style=custom_style,
+            instruction="(↑↓ Enter)"
+        ).ask()
+        
+        if result is None:
+            return "s"  # Default to stand on cancel
+        elif "Hit" in result:
+            return "h"
+        elif "Stand" in result:
+            return "s"
+        elif "Surrender" in result:
+            return "u"
+        return "s"
 
     def show_message(self, message: str, style: str = "white"):
-        """Show message - kept for compatibility but not used for win/loss."""
-        pass  # Win/loss now shown in info panel
+        """Show message - kept for compatibility."""
+        pass
 
     def ask_play_again(self) -> bool:
-        ans = Prompt.ask("[bold]Another round?[/bold]", choices=["y", "n"], default="y")
-        return ans.lower() == 'y'
+        """Ask if player wants another round using arrow keys."""
+        import questionary
+        from questionary import Style
+        
+        custom_style = Style([
+            ('pointer', 'fg:green bold'),
+            ('highlighted', 'fg:green bold'),
+        ])
+        
+        result = questionary.select(
+            "Another round?",
+            choices=["► Yes", "► No"],
+            style=custom_style,
+            instruction="(↑↓ Enter)"
+        ).ask()
+        
+        return result is not None and "Yes" in result

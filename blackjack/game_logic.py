@@ -29,14 +29,18 @@ class BlackjackGame:
             return getpass.getuser()
         except Exception:
             return os.environ.get('USER', os.environ.get('USERNAME', 'Player'))
-
-    def welcome(self):
-        self.ui.clear_screen()
+    
+    def show_title(self):
+        """Display the game title."""
         self.ui.console.print()
         self.ui.console.print("[bold gold1]♠ ♥ TERMINAL BLACKJACK ♦ ♣[/bold gold1]")
         self.ui.console.print("[dim]─────────────────────────[/dim]")
         self.ui.console.print("[dim]by Sz[/dim]")
         self.ui.console.print()
+
+    def welcome(self):
+        self.ui.clear_screen()
+        self.show_title()
         
         # Get system username
         system_user = self.get_system_username()
@@ -55,23 +59,16 @@ class BlackjackGame:
         player_name = custom_name.strip() if custom_name.strip() else system_user
         self.player.name = player_name
         
-        # Check if player exists
+        # Check if player exists and load chips (no welcome message yet)
         saved_chips = storage.load_player(player_name)
         
         if saved_chips is not None:
             # Returning player
             self.player.chips = saved_chips
-            self.ui.console.print()
-            self.ui.console.print(f"[bold green]You shouldn't be gambling, {player_name}![/bold green]")
         else:
             # New player - give 500 chips
             self.player.chips = 500
             storage.save_player(player_name, 500)
-            self.ui.console.print()
-            welcome_msg = random.choice(NEW_PLAYER_MESSAGES)
-            self.ui.console.print(f"[bold magenta]{welcome_msg}[/bold magenta]")
-        
-        time.sleep(1.5)
 
     def save_progress(self):
         """Save player's current chips."""
@@ -164,20 +161,57 @@ class BlackjackGame:
 
     def run(self):
         self.welcome()
+        
         while True:
-            if self.player.chips <= 0:
-                self.ui.clear_screen()
-                self.ui.console.print("[bold red]Game Over! You ran out of chips.[/bold red]")
-                self.ui.console.print("[dim]Come back tomorrow for a fresh $500![/dim]")
-                # Reset player to 0 (they're broke)
-                self.save_progress()
-                break
+            # Clear and show title before menu
+            self.ui.clear_screen()
+            self.show_title()
             
-            self.play_round()
+            # Show main menu
+            choice = self.ui.show_main_menu()
             
-            if not self.ui.ask_play_again():
+            if choice == "play":
+                # Show welcome message when starting game
+                saved_chips = storage.load_player(self.player.name)
+                is_returning = saved_chips is not None and saved_chips > 0
+                
+                if is_returning:
+                    self.ui.console.print()
+                    self.ui.console.print(f"[bold green]You shouldn't be gambling, {self.player.name}![/bold green]")
+                    time.sleep(1)
+                
+                self.play_game_loop()
+            elif choice == "earn":
+                self.ui.console.print("\n[bold yellow]💰 Earn Chips - Coming Soon![/bold yellow]")
+                self.ui.console.print("[dim]Watch ads, complete challenges, and more...[/dim]")
+                time.sleep(2)
+            elif choice == "about":
+                self.ui.console.print("\n[bold cyan]ℹ️  About Game - Coming Soon![/bold cyan]")
+                self.ui.console.print("[dim]Credits, rules, and game info...[/dim]")
+                time.sleep(2)
+            else:  # exit
                 break
         
         self.ui.clear_screen()
         self.ui.console.print(f"[bold cyan]Thanks for playing, {self.player.name}![/bold cyan]")
         self.ui.console.print(f"[dim]Your chips saved:[/dim] [bold yellow]${self.player.chips}[/bold yellow]")
+
+    def play_game_loop(self):
+        """Main game loop for playing rounds."""
+        first_round = True
+        
+        while True:
+            if self.player.chips <= 0:
+                self.ui.clear_screen()
+                self.ui.console.print("[bold red]Game Over! You ran out of chips.[/bold red]")
+                self.ui.console.print("[dim]Come back tomorrow for a fresh $500![/dim]")
+                self.save_progress()
+                time.sleep(2)
+                break
+            
+            self.play_round()
+            first_round = False
+            
+            if not self.ui.ask_play_again():
+                break
+
