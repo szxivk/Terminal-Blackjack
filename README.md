@@ -4,12 +4,10 @@ A beautiful, simplified terminal-based Blackjack game written in Python.
 
 ## Features
 
-- **Beautiful UI**: Powered by [Rich](https://github.com/Textualize/rich), featuring colored cards, gothic card backs, and bento-style layout
-- **Arrow Key Navigation**: Intuitive menu system and gameplay using questionary
+- **Beautiful UI**: Powered by [Rich](https://pypi.org/project/rich/)
+- **Arrow Key Navigation**: Intuitive menu system and gameplay using [Questionary](https://pypi.org/project/questionary/)
 - **Player Persistence**: Your chips are saved locally and restored on return
-- **Auto-Welcome Bonus**: New players get $500 chips automatically
-- **Simple Gameplay**: Focus on the core mechanics - Hit, Stand, or Surrender
-- **About & Rules**: Built-in help system with witty explanations
+
 
 ## Requirements
 
@@ -55,3 +53,4 @@ The original version of this project is preserved in the `legacy_v1/` directory.
 
 ---
 **Created by Sz**
+
