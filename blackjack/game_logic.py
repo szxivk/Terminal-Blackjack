@@ -186,9 +186,7 @@ class BlackjackGame:
                 self.ui.console.print("[dim]Watch ads, complete challenges, and more...[/dim]")
                 time.sleep(2)
             elif choice == "about":
-                self.ui.console.print("\n[bold cyan]ℹ️  About Game - Coming Soon![/bold cyan]")
-                self.ui.console.print("[dim]Credits, rules, and game info...[/dim]")
-                time.sleep(2)
+                self.ui.show_about_page()
             else:  # exit
                 break
         

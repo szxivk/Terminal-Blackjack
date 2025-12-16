@@ -282,3 +282,34 @@ class BlackjackUI:
         ).ask()
         
         return result is not None and "Yes" in result
+    
+    def show_about_page(self):
+        """Display About & Rules page."""
+        from .about import ABOUT_TEXT, RULES_TEXT
+        
+        self.clear_screen()
+        
+        # Title
+        self.console.print()
+        self.console.print("[bold gold1]♠ ♥ TERMINAL BLACKJACK ♦ ♣[/bold gold1]")
+        self.console.print("[dim]─────────────────────────[/dim]")
+        self.console.print("[dim]by Sz[/dim]")
+        self.console.print()
+        
+        # Page title
+        self.console.print("[bold cyan]═══════════════ About & Rules ═══════════════[/bold cyan]")
+        self.console.print()
+        
+        # About section
+        self.console.print("[bold yellow]ABOUT[/bold yellow]")
+        self.console.print("[dim]────────────────────────────────────────────[/dim]")
+        self.console.print(ABOUT_TEXT)
+        self.console.print()
+        
+        # Rules section
+        self.console.print("[bold yellow]RULES (For those who don't know!)[/bold yellow]")
+        self.console.print("[dim]────────────────────────────────────────────[/dim]")
+        self.console.print(RULES_TEXT)
+        self.console.print()
+        self.console.print("[dim]Press Enter to return to menu...[/dim]")
+        input()
