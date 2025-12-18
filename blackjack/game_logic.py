@@ -32,13 +32,15 @@ class BlackjackGame:
         except Exception:
             return os.environ.get('USER', os.environ.get('USERNAME', 'Player'))
     
-    def show_title(self):
-        """Display the game title."""
-        self.ui.print_header()
+    def show_title(self, with_chips: bool = True, with_username: bool = True):
+        """Display the game title. Optionally show current chips and username."""
+        chips = self.player.chips if with_chips else None
+        username = self.player.name if with_username else None
+        self.ui.print_header(chips, username)
 
     def welcome(self):
         self.ui.clear_screen()
-        self.show_title()
+        self.show_title(with_chips=False, with_username=False)
         
         # Get system username
         system_user = self.get_system_username()
@@ -193,7 +195,7 @@ class BlackjackGame:
                         history = []
                         while True:
                             q, idx = self.trivia.get_next_question(self.trivia.general_questions, history)
-                            result = self.ui.ask_trivia_question(q)
+                            result = self.ui.ask_trivia_question(q, self.player.chips, self.player.name)
                             
                             if result is None:  # User selected Exit
                                 break
@@ -238,7 +240,7 @@ class BlackjackGame:
                             if not q:
                                 break
                                 
-                            result = self.ui.ask_trivia_question(q)
+                            result = self.ui.ask_trivia_question(q, self.player.chips, self.player.name)
                             
                             if result is None: # Exit
                                 break

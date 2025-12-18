@@ -16,12 +16,19 @@ class BlackjackUI:
     def __init__(self):
         self.console = console
 
-    def print_header(self):
+    def print_header(self, chips: int = None, username: str = None):
         """Display the game title header."""
         self.console.print()
         self.console.print("[bold gold1]♠ ♥ TERMINAL BLACKJACK ♦ ♣[/bold gold1]")
         self.console.print("[dim]─────────────────────────[/dim]")
-        self.console.print("[dim]by Sz[/dim]")
+        
+        left_text = f"[dim]{username}[/dim]" if username else "[dim]by Sz[/dim]"
+        
+        if chips is not None:
+            self.console.print(f"{left_text} [dim]• Chips:[/dim] [bold green]${chips}[/bold green]")
+        else:
+            self.console.print(left_text)
+        
         self.console.print()
 
     def get_card_color(self, card: Card) -> str:
@@ -412,7 +419,7 @@ class BlackjackUI:
                 return path
         return "back"
 
-    def ask_trivia_question(self, question_data: dict) -> object:
+    def ask_trivia_question(self, question_data: dict, current_chips: int = None, username: str = None) -> object:
         """
         Ask a trivia question. 
         Returns:
@@ -424,7 +431,7 @@ class BlackjackUI:
         from questionary import Style
 
         self.clear_screen()
-        self.print_header()
+        self.print_header(current_chips, username)
 
         q_text = question_data["question"]
         options = list(question_data["options"]) # Copy to avoid modifying original
