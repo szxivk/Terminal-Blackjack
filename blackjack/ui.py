@@ -286,6 +286,8 @@ class BlackjackUI:
     def show_about_page(self):
         """Display About & Rules page."""
         from .about import ABOUT_TEXT, RULES_TEXT
+        from rich.panel import Panel
+        from rich import box
         
         self.clear_screen()
         
@@ -296,20 +298,29 @@ class BlackjackUI:
         self.console.print("[dim]by Sz[/dim]")
         self.console.print()
         
-        # Page title
-        self.console.print("[bold cyan]═══════════════ About & Rules ═══════════════[/bold cyan]")
-        self.console.print()
+        # Build content for the panel
+        content = Text()
         
         # About section
-        self.console.print("[bold yellow]ABOUT[/bold yellow]")
-        self.console.print("[dim]────────────────────────────────────────────[/dim]")
-        self.console.print(ABOUT_TEXT)
-        self.console.print()
+        content.append("ABOUT\n", style="bold yellow")
+        content.append("────────────────────────────────────────────\n", style="dim")
+        content.append(ABOUT_TEXT + "\n\n")
         
         # Rules section
-        self.console.print("[bold yellow]RULES (For those who don't know!)[/bold yellow]")
-        self.console.print("[dim]────────────────────────────────────────────[/dim]")
-        self.console.print(RULES_TEXT)
+        content.append("RULES (For those who don't know!)\n", style="bold yellow")
+        content.append("────────────────────────────────────────────\n", style="dim")
+        content.append(RULES_TEXT)
+        
+        # Create panel with gothic/retro box
+        panel = Panel(
+            content,
+            title="[bold cyan]About & Rules[/bold cyan]",
+            border_style="cyan",
+            box=box.HEAVY,
+            padding=(1, 2)
+        )
+        
+        self.console.print(panel)
         self.console.print()
         self.console.print("[dim]Press Enter to return to menu...[/dim]")
         input()
