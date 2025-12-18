@@ -1,0 +1,26 @@
+{
+  "topic": "General Computer Science",
+  "comment": "Use this template to generate your own trivia using an LLM. Save your new file in this directory with a .json extension.",
+  "questions": [
+    {
+      "question": "What does CPU stand for?",
+      "options": [
+        "Central Processing Unit",
+        "Computer Personal Unit",
+        "Central Processor Utility",
+        "Control Processing Unit"
+      ],
+      "correct_index": 0
+    },
+    {
+      "question": "Which of these is NOT a programming language?",
+      "options": [
+        "Python",
+        "HTML",
+        "Java",
+        "C++"
+      ],
+      "correct_index": 1
+    }
+  ]
+}

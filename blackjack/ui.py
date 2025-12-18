@@ -16,6 +16,14 @@ class BlackjackUI:
     def __init__(self):
         self.console = console
 
+    def print_header(self):
+        """Display the game title header."""
+        self.console.print()
+        self.console.print("[bold gold1]♠ ♥ TERMINAL BLACKJACK ♦ ♣[/bold gold1]")
+        self.console.print("[dim]─────────────────────────[/dim]")
+        self.console.print("[dim]by Sz[/dim]")
+        self.console.print()
+
     def get_card_color(self, card: Card) -> str:
         if card.suit in ['Hearts', 'Diamonds']:
             return "red"
@@ -264,7 +272,7 @@ class BlackjackUI:
         """Show message - kept for compatibility."""
         pass
 
-    def ask_play_again(self) -> bool:
+    def ask_play_again(self, message: str = "Another round?") -> bool:
         """Ask if player wants another round using arrow keys."""
         import questionary
         from questionary import Style
@@ -275,7 +283,7 @@ class BlackjackUI:
         ])
         
         result = questionary.select(
-            "Another round?",
+            message,
             choices=["► Yes", "► No"],
             style=custom_style,
             instruction="(↑↓ Enter)"
@@ -322,5 +330,144 @@ class BlackjackUI:
         
         self.console.print(panel)
         self.console.print()
-        self.console.print("[dim]Press Enter to return to menu...[/dim]")
-        input()
+        
+        # Use simple select for back
+        import questionary
+        from questionary import Style
+        
+        custom_style = Style([
+            ('pointer', 'fg:green bold'),
+            ('highlighted', 'fg:green bold'),
+        ])
+        
+        questionary.select(
+             "",
+             choices=["◂ Back to Menu"],
+             style=custom_style,
+             instruction=""
+        ).ask()
+
+    def show_earn_menu(self) -> str:
+        """Show the Earn Chips sub-menu."""
+        import questionary
+        from questionary import Style
+
+        custom_style = Style([
+            ('qmark', 'fg:yellow bold'),
+            ('question', 'fg:white bold'),
+            ('answer', 'fg:green bold'),
+            ('pointer', 'fg:green bold'),
+        ])
+
+        choices = [
+            "► General Trivia ($3)",
+            "► Custom MCQs ($10)",
+            "◂ Back to Menu"
+        ]
+
+        result = questionary.select(
+            "Select Mode:",
+            choices=choices,
+            style=custom_style,
+            instruction="(↑↓ Enter)"
+        ).ask()
+
+        if result is None or "Back" in result:
+            return "back"
+        elif "General" in result:
+            return "general"
+        elif "Custom" in result:
+            return "custom"
+        return "back"
+
+    def show_custom_topics_menu(self, topics: list) -> str:
+        """Show available custom topics."""
+        import questionary
+        from questionary import Style
+
+        custom_style = Style([
+            ('pointer', 'fg:green bold'),
+        ])
+
+        if not topics:
+            return None
+
+        # topics is list of (name, path)
+        choices = [f"► {t[0]}" for t in topics]
+        choices.append("◂ Back to Menu")
+
+        result = questionary.select(
+            "Select Topic:",
+            choices=choices,
+            style=custom_style
+        ).ask()
+
+        if result is None or "Back" in result:
+            return "back"
+        
+        # Find path based on selection
+        selected_name = result.replace("► ", "")
+        for name, path in topics:
+            if name == selected_name:
+                return path
+        return "back"
+
+    def ask_trivia_question(self, question_data: dict) -> object:
+        """
+        Ask a trivia question. 
+        Returns:
+            True: Correct
+            False: Incorrect
+            None: Exit/Back to Menu
+        """
+        import questionary
+        from questionary import Style
+
+        self.clear_screen()
+        self.print_header()
+
+        q_text = question_data["question"]
+        options = list(question_data["options"]) # Copy to avoid modifying original
+        
+        # Add Exit option
+        exit_opt = "◂ Back to Menu"
+        options.append(exit_opt)
+        
+        correct_idx = question_data["correct_index"]
+        # Ensure index is valid
+        if 0 <= correct_idx < len(question_data["options"]):
+            correct_answer = question_data["options"][correct_idx]
+        else:
+            correct_answer = "" # Should not happen with valid data
+
+        custom_style = Style([
+            ('qmark', 'fg:yellow bold'),
+            ('question', 'fg:cyan bold'),
+            ('answer', 'fg:white'),
+            ('pointer', 'fg:green bold'),
+            ('selected', 'fg:green'),
+        ])
+
+        answer = questionary.select(
+            q_text,
+            choices=options,
+            style=custom_style,
+            instruction="(Select answer)"
+        ).ask()
+
+        if answer is None or answer == exit_opt:
+            return None
+            
+        return answer == correct_answer
+
+    def show_trivia_result(self, is_correct: bool, reward: int):
+        """Show result of the question."""
+        self.console.print()
+        if is_correct:
+            self.console.print(f"[bold green]Correct! You earned ${reward}[/bold green]")
+        else:
+            self.console.print("[bold red]Wrong answer![/bold red]")
+        
+        import time
+        time.sleep(1.5)
+

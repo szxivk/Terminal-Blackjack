@@ -2,6 +2,7 @@ from .models.card import Deck
 from .models.player import Player, Dealer
 from .ui import BlackjackUI
 from . import storage
+from .trivia import TriviaManager
 import time
 import getpass
 import os
@@ -9,11 +10,11 @@ import random
 
 # Funny welcome messages for new players
 NEW_PLAYER_MESSAGES = [
-    "🎰 Fresh meat! Here's $500 to lose... I mean, to WIN!",
-    "🃏 A new challenger! Take these $500 chips and try not to cry.",
-    "♠️ Welcome, rookie! $500 on the house. Don't spend it all in one bet!",
-    "🎲 Ah, new blood! Here's $500. The house always wins... eventually.",
-    "💰 First time? How cute. Take $500 and learn the hard way!",
+    "Fresh meat! Here's $500 to lose... I mean, to WIN!",
+    "A new challenger! Take these $500 chips and try not to cry.",
+    "Welcome, rookie! $500 on the house. Don't spend it all in one bet!",
+    "Ah, new blood! Here's $500. The house always wins... eventually.",
+    "First time? How cute. Take $500 and learn the hard way!",
 ]
 
 class BlackjackGame:
@@ -22,6 +23,7 @@ class BlackjackGame:
         self.deck = Deck(num_decks=6)
         self.player = Player("Player")
         self.dealer = Dealer()
+        self.trivia = TriviaManager()
 
     def get_system_username(self) -> str:
         """Get the system username."""
@@ -32,11 +34,7 @@ class BlackjackGame:
     
     def show_title(self):
         """Display the game title."""
-        self.ui.console.print()
-        self.ui.console.print("[bold gold1]♠ ♥ TERMINAL BLACKJACK ♦ ♣[/bold gold1]")
-        self.ui.console.print("[dim]─────────────────────────[/dim]")
-        self.ui.console.print("[dim]by Sz[/dim]")
-        self.ui.console.print()
+        self.ui.print_header()
 
     def welcome(self):
         self.ui.clear_screen()
@@ -182,17 +180,85 @@ class BlackjackGame:
                 
                 self.play_game_loop()
             elif choice == "earn":
-                self.ui.console.print("\n[bold yellow]💰 Earn Chips - Coming Soon![/bold yellow]")
-                self.ui.console.print("[dim]Watch ads, complete challenges, and more...[/dim]")
-                time.sleep(2)
+                while True:
+                    self.ui.clear_screen()
+                    self.show_title()
+                    mode = self.ui.show_earn_menu()
+                    
+                    if mode == "back":
+                        break
+                    
+                    elif mode == "general":
+                        # General Trivia Loop
+                        history = []
+                        while True:
+                            q, idx = self.trivia.get_next_question(self.trivia.general_questions, history)
+                            result = self.ui.ask_trivia_question(q)
+                            
+                            if result is None:  # User selected Exit
+                                break
+                                
+                            history.append(idx)
+                            if result:
+                                self.player.chips += 3
+                                self.save_progress()
+                                self.ui.show_trivia_result(True, 3)
+                            else:
+                                self.ui.show_trivia_result(False, 0)
+                            
+                            # Auto-continue without prompt
+
+                    elif mode == "custom":
+                        # Scan topics
+                        topics = self.trivia.get_custom_topics()
+                        if not topics:
+                            self.ui.console.print()
+                            self.ui.console.print("[bold red]No topics found![/bold red]")
+                            self.ui.console.print(f"[dim]Please add JSON files to: {self.trivia.custom_dir}[/dim]")
+                            self.ui.console.print("[dim]Use 'template.json' as a guide (e.g. generate with LLM)[/dim]")
+                            self.ui.console.print()
+                            input("Press Enter to go back...")
+                            continue
+                            
+                        topic_path = self.ui.show_custom_topics_menu(topics)
+                        if topic_path == "back":
+                            continue
+                            
+                        # Load questions
+                        questions = self.trivia.load_custom_questions(topic_path)
+                        if not questions:
+                            self.ui.console.print("[red]No questions found in file![/red]")
+                            time.sleep(1)
+                            continue
+                            
+                        # Infinite loop for repetitive learning
+                        history = []
+                        while True:
+                            q, idx = self.trivia.get_next_question(questions, history)
+                            if not q:
+                                break
+                                
+                            result = self.ui.ask_trivia_question(q)
+                            
+                            if result is None: # Exit
+                                break
+                                
+                            history.append(idx)
+                            if result:
+                                self.player.chips += 10
+                                self.save_progress()
+                                self.ui.show_trivia_result(True, 10)
+                            else:
+                                self.ui.show_trivia_result(False, 0)
+                            
+                            # Auto-continue without prompt
             elif choice == "about":
                 self.ui.show_about_page()
             else:  # exit
                 break
         
         self.ui.clear_screen()
-        self.ui.console.print(f"[bold cyan]Thanks for playing, {self.player.name}![/bold cyan]")
-        self.ui.console.print(f"[dim]Your chips saved:[/dim] [bold yellow]${self.player.chips}[/bold yellow]")
+        self.ui.console.print(f"[bold white]Have a good one,[/bold white] [bold white]{self.player.name}[/bold white]! [dim]chips saved:[/dim] [bold green]${self.player.chips}[/bold green]")
 
     def play_game_loop(self):
         """Main game loop for playing rounds."""
