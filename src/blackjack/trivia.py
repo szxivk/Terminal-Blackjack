@@ -5,9 +5,43 @@ import random
 from typing import List, Dict, Optional, Tuple
 
 class TriviaManager:
-    def __init__(self, custom_dir: str = "questions"):
-        # Resolve path relative to the current working directory or package
-        self.custom_dir = os.path.abspath(custom_dir)
+    def __init__(self, custom_dir: str = None):
+        # Resolve path relative to the user's home directory
+        if custom_dir:
+             self.custom_dir = os.path.abspath(custom_dir)
+        else:
+             self.custom_dir = os.path.expanduser("~/.terminal_blackjack/questions")
+        
+        # Ensure directory exists
+        if not os.path.exists(self.custom_dir):
+            try:
+                os.makedirs(self.custom_dir)
+            except OSError:
+                pass
+        
+        # Ensure template exists
+        self._ensure_template()
+
+    def _ensure_template(self):
+        """Create a template.json file if it doesn't exist."""
+        template_path = os.path.join(self.custom_dir, "template.json")
+        if not os.path.exists(template_path):
+            template_data = {
+                "topic": "My Custom Topic",
+                "questions": [
+                    {
+                        "question": "Example Question?",
+                        "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
+                        "correct_index": 0
+                    }
+                ]
+            }
+            try:
+                with open(template_path, 'w', encoding='utf-8') as f:
+                    json.dump(template_data, f, indent=4)
+            except IOError:
+                pass
+
         
         self.general_questions = [
             {
