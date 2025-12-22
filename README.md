@@ -47,10 +47,6 @@ Use arrow keys (↑↓) to navigate menus and select options. Press Enter to con
 
 Player data is stored locally in `~/.terminal_blackjack/players.json`. Your chips are automatically saved after each round.
 
-## Legacy Code
-
-The original version of this project is preserved in the `legacy_v1/` directory.
-
 ---
-**Created by Sz**
+**by szxivk**
 
