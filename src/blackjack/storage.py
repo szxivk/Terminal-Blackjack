@@ -17,6 +17,10 @@ def _get_data_path() -> Path:
     DATA_DIR.mkdir(exist_ok=True)
     return DATA_FILE
 
+def get_data_dir() -> Path:
+    """Return the main data directory path."""
+    return DATA_DIR
+
 def _hash_name(name: str) -> str:
     """Create a hash of the player name for storage key."""
     return hashlib.sha256(name.lower().strip().encode()).hexdigest()[:16]

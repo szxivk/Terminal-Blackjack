@@ -3,6 +3,7 @@ import os
 import glob
 import random
 from typing import List, Dict, Optional, Tuple
+from .storage import get_data_dir
 
 class TriviaManager:
     def __init__(self, custom_dir: str = None):
@@ -10,7 +11,7 @@ class TriviaManager:
         if custom_dir:
              self.custom_dir = os.path.abspath(custom_dir)
         else:
-             self.custom_dir = os.path.expanduser("~/.terminal_blackjack/questions")
+             self.custom_dir = get_data_dir() / "questions"
         
         # Ensure directory exists
         if not os.path.exists(self.custom_dir):
