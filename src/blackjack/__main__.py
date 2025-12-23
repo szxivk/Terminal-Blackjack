@@ -4,38 +4,62 @@ import shutil
 import os
 import subprocess
 from pathlib import Path
+from datetime import datetime
 from .storage import get_data_dir
 
 # New Backup Structure
 BACKUP_ROOT = Path.home() / "Documents" / "pybjack-saves"
 
 def get_next_backup_path() -> Path:
-    """Finds the next available save slot (e.g., save-1, save-2)."""
-    i = 1
-    while True:
-        path = BACKUP_ROOT / f"save-{i}"
-        if not path.exists():
-            return path
-        i += 1
+    """Creates a timestamped backup path (e.g., save-2023-12-23-14-30-00)."""
+    timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    return BACKUP_ROOT / f"save-{timestamp}"
 
-def find_latest_backup() -> Path | None:
-    """Finds the most recently modified save-* directory."""
+def get_available_backups() -> list[Path]:
+    """Returns a list of all valid save-* directories, sorted by newest first."""
     if not BACKUP_ROOT.exists():
-        return None
+        return []
     
     saves = []
     for item in BACKUP_ROOT.iterdir():
         if item.is_dir() and item.name.startswith("save-"):
             saves.append(item)
     
-    if not saves:
-        return None
-        
     # Sort by modification time, newest first
-    return sorted(saves, key=lambda p: p.stat().st_mtime, reverse=True)[0]
+    return sorted(saves, key=lambda p: p.stat().st_mtime, reverse=True)
+
+def prompt_backup_selection() -> Path | None:
+    """Lists backups and asks user to select one."""
+    backups = get_available_backups()
+    if not backups:
+        print("No backups found.")
+        return None
+
+    print("\nAvailable Backups:")
+    for i, backup in enumerate(backups, 1):
+        # formatted_time = datetime.fromtimestamp(backup.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+        print(f"{i}. {backup.name}")
+    
+    print(f"{len(backups) + 1}. Cancel/Skip")
+    
+    while True:
+        try:
+            choice = input("\nSelect a backup to restore (number): ")
+            if not choice.isdigit():
+                continue
+            
+            idx = int(choice) - 1
+            if 0 <= idx < len(backups):
+                return backups[idx]
+            elif idx == len(backups):
+                return None
+            else:
+                print("Invalid selection.")
+        except KeyboardInterrupt:
+            return None
 
 def backup_data(data_dir: Path):
-    """Backups data to a new save slot."""
+    """Backups data to a new timestamped save slot."""
     if not data_dir.exists():
         print("No data to backup.")
         return False
@@ -59,10 +83,14 @@ def backup_data(data_dir: Path):
 def restore_data(target_dir: Path, source_dir: Path | None = None):
     """Restores data from backup."""
     if source_dir is None:
-        source_dir = find_latest_backup()
+        source_dir = prompt_backup_selection()
         
-    if source_dir is None or not source_dir.exists():
-        print(f"No valid backup found at {source_dir if source_dir else BACKUP_ROOT}")
+    if source_dir is None:
+        print("Restore cancelled.")
+        return False
+        
+    if not source_dir.exists():
+        print(f"No valid backup found at {source_dir}")
         return False
     
     try:
@@ -141,13 +169,13 @@ def main():
             return
 
     # --- STARTUP CHECK ---
-    # Only check if data directory doesn't exist (fresh install state) but a valid backup does
-    latest_backup = find_latest_backup()
-    if not data_dir.exists() and latest_backup:
-        print(f"A previous backup ({latest_backup.name}) was found.")
+    # Only check if data directory doesn't exist (fresh install state) but valid backups exist
+    backups = get_available_backups()
+    if not data_dir.exists() and backups:
+        print(f"Found {len(backups)} backup(s).")
         restore_choice = input("Would you like to restore your save data? (yes/no): ").lower()
         if restore_choice in ("yes", "y"):
-            restore_data(data_dir, latest_backup)
+            restore_data(data_dir)
 
     game = BlackjackGame()
     game.run()
