@@ -160,7 +160,57 @@ class BlackjackGame:
         time.sleep(1.5)
 
     def run(self):
-        self.welcome()
+        # 1. Start Menu Logic
+        backups = storage.get_available_backups()
+        latest_backup = backups[0] if backups else None
+        
+        # Always show menu
+        backup_name = latest_backup.name if latest_backup else None
+        
+        self.ui.clear_screen()
+        self.show_title(with_chips=False, with_username=False)
+        
+        action = self.ui.show_start_menu(backup_name)
+        
+        if action == "continue":
+            self.ui.console.print(f"[green]Restoring {latest_backup.name}...[/green]")
+            if storage.restore_data(latest_backup):
+                time.sleep(0.5)
+            else:
+                self.ui.console.print("[red]Failed to restore backup![/red]")
+                time.sleep(2)
+                
+        elif action == "new":
+            self.ui.console.print("[yellow]Starting fresh...[/yellow]")
+            storage.reset_data()
+            time.sleep(0.5)
+            
+        elif action == "load":
+            selected_backup = self.ui.show_backup_selection(backups)
+            if selected_backup:
+                self.ui.console.print(f"[green]Restoring {selected_backup.name}...[/green]")
+                if storage.restore_data(selected_backup):
+                    time.sleep(0.5)
+                else:
+                    self.ui.console.print("[red]Failed to restore backup![/red]")
+                    time.sleep(2)
+            else:
+                return # Exit if cancelled
+        elif action == "exit":
+            return
+
+        # 2. Session / Login Logic
+        last_user = storage.load_session()
+        
+        # If we have a session user and data exists, auto-login
+        if last_user and not storage.is_new_player(last_user):
+            self.player.name = last_user
+            self.player.chips = storage.load_player(last_user)
+            # Skip welcome, go straight to menu
+        else:
+            self.welcome()
+            # Save session after welcome
+            storage.save_session(self.player.name)
         
         while True:
             # Clear and show title before menu
@@ -257,6 +307,12 @@ class BlackjackGame:
             elif choice == "about":
                 self.ui.show_about_page()
             else:  # exit
+                self.ui.console.print("[yellow]Saving game...[/yellow]")
+                if storage.save_current_game():
+                    self.ui.console.print("[green]Game saved![/green]")
+                else:
+                    self.ui.console.print("[red]Save failed![/red]")
+                time.sleep(1)
                 break
         
         self.ui.clear_screen()

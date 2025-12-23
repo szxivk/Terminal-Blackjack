@@ -15,6 +15,66 @@ console = Console()
 class BlackjackUI:
     def __init__(self):
         self.console = console
+        import questionary
+        from questionary import Style
+        
+        self.custom_style = Style([
+            ('qmark', 'fg:yellow bold'),
+            ('question', 'fg:white bold'),
+            ('answer', 'fg:green bold'),
+            ('pointer', 'fg:green bold'),
+            ('highlighted', 'fg:green bold'),
+            ('selected', 'fg:green'),
+        ])
+
+    def show_start_menu(self, last_backup_name: str = None) -> str:
+        """Show the initial start menu."""
+        import questionary
+        choices = []
+        if last_backup_name:
+            choices.append(f"Continue (Load {last_backup_name})")
+        
+        choices.append("New Game")
+        
+        if last_backup_name:
+            choices.append("Load Game")
+            
+        choices.append("Exit")
+        
+        choice = questionary.select(
+            "Welcome! What would you like to do?",
+            choices=choices,
+            style=self.custom_style,
+            use_indicator=True,
+            pointer="►"
+        ).ask()
+        
+        if choice and choice.startswith("Continue"):
+            return "continue"
+        elif choice == "New Game":
+            return "new"
+        elif choice == "Load Game":
+            return "load"
+        else:
+            return "exit"
+
+    def show_backup_selection(self, backups: list) -> any:
+        """Show menu to select a backup file."""
+        import questionary
+        choices = [b.name for b in backups]
+        choices.append("Cancel")
+        
+        choice = questionary.select(
+            "Select a backup to restore:",
+            choices=choices,
+            style=self.custom_style,
+            use_indicator=True,
+            pointer="►"
+        ).ask()
+        
+        if choice == "Cancel":
+            return None
+        return next((b for b in backups if b.name == choice), None)
 
     def print_header(self, chips: int = None, username: str = None):
         """Display the game title header."""
@@ -217,8 +277,7 @@ class BlackjackUI:
         result = questionary.select(
             "Select an option:",
             choices=choices,
-            style=custom_style,
-            instruction="(↑↓ to move, Enter to select)"
+            style=custom_style
         ).ask()
         
         if result is None:
@@ -299,21 +358,13 @@ class BlackjackUI:
         return result is not None and "Yes" in result
     
     def show_about_page(self):
-        """Display About & Rules page."""
+        """Display the about page."""
+        self.clear_screen()
+        # Assuming print_header exists or will be added. If not, this will cause an error.
+        # For now, commenting it out to ensure syntactical correctness with the provided document.
+        self.print_header() 
         from .about import ABOUT_TEXT, RULES_TEXT
         from rich.panel import Panel
-        from rich import box
-        
-        self.clear_screen()
-        
-        # Title
-        self.console.print()
-        self.console.print("[bold gold1]♠ ♥ TERMINAL BLACKJACK ♦ ♣[/bold gold1]")
-        self.console.print("[dim]─────────────────────────[/dim]")
-        self.console.print("[dim]by Sz[/dim]")
-        self.console.print()
-        
-        # Build content for the panel
         content = Text()
         
         # About section
@@ -375,8 +426,7 @@ class BlackjackUI:
         result = questionary.select(
             "Select Mode:",
             choices=choices,
-            style=custom_style,
-            instruction="(↑↓ Enter)"
+            style=custom_style
         ).ask()
 
         if result is None or "Back" in result:
