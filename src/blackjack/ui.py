@@ -32,7 +32,13 @@ class BlackjackUI:
         import questionary
         choices = []
         if last_backup_name:
-            choices.append(f"Continue (Load {last_backup_name})")
+            # Parse username from filename: save-USERNAME-TIMESTAMP
+            parts = last_backup_name.split('-')
+            if len(parts) >= 3:
+                display_name = parts[1]
+            else:
+                display_name = last_backup_name
+            choices.append(f"Continue ({display_name})")
         
         choices.append("New Game")
         
@@ -41,12 +47,15 @@ class BlackjackUI:
             
         choices.append("Exit")
         
+        self.console.print(" [bold yellow]✦[/bold yellow] [bold](Use arrow keys)[/bold]")
         choice = questionary.select(
-            "Welcome! What would you like to do?",
+            "",
             choices=choices,
             style=self.custom_style,
-            use_indicator=True,
-            pointer="►"
+            use_indicator=False,
+            pointer="►",
+            qmark="",
+            instruction=" "
         ).ask()
         
         if choice and choice.startswith("Continue"):
@@ -60,6 +69,8 @@ class BlackjackUI:
 
     def show_backup_selection(self, backups: list) -> any:
         """Show menu to select a backup file."""
+        self.clear_screen()
+        self.print_header()
         import questionary
         
         choices = []
@@ -79,14 +90,17 @@ class BlackjackUI:
             
             choices.append(questionary.Choice(title=display_name, value=b))
             
-        choices.append(questionary.Choice(title="Cancel", value="CANCEL"))
+        choices.append(questionary.Choice(title="Back to Menu", value="CANCEL"))
         
+        self.console.print(" [bold yellow]✦[/bold yellow] [bold]Select a backup to restore:[/bold]")
         choice = questionary.select(
-            "Select a backup to restore:",
+            "",
             choices=choices,
             style=self.custom_style,
-            use_indicator=True,
-            pointer="►"
+            use_indicator=False,
+            pointer="►",
+            qmark="",
+            instruction=" "
         ).ask()
         
         if choice == "CANCEL":
@@ -285,16 +299,21 @@ class BlackjackUI:
         ])
         
         choices = [
-            "► Play Game",
-            "► Earn Chips",
-            "► About Game",
-            "► Exit"
+            "Play Game",
+            "Earn Chips",
+            "About Game",
+            "Exit"
         ]
         
+        self.console.print(" [bold yellow]✦[/bold yellow] [bold](Use arrow keys)[/bold]")
         result = questionary.select(
-            "Select an option:",
+            "",
             choices=choices,
-            style=custom_style
+            style=custom_style,
+            use_indicator=False,
+            pointer="►",
+            qmark="",
+            instruction=" "
         ).ask()
         
         if result is None:
@@ -330,15 +349,19 @@ class BlackjackUI:
             ('selected', 'fg:green bold'),
         ])
         
-        choices = ["► Hit", "► Stand"]
+        choices = ["Hit", "Stand"]
         if can_surrender:
-            choices.append("► Surrender")
+            choices.append("Surrender")
         
+        self.console.print(" [bold yellow]✦[/bold yellow] [bold]Choose action[/bold]")
         result = questionary.select(
-            "Your move:",
+            "",
             choices=choices,
             style=custom_style,
-            instruction="(↑↓ Enter)"
+            instruction=" ",
+            use_indicator=False,
+            pointer="►",
+            qmark=""
         ).ask()
         
         if result is None:
@@ -365,11 +388,15 @@ class BlackjackUI:
             ('highlighted', 'fg:green bold'),
         ])
         
+        self.console.print(f" [bold yellow]✦[/bold yellow] [bold]{message}[/bold]")
         result = questionary.select(
-            message,
-            choices=["► Yes", "► No"],
+            "",
+            choices=["Yes", "No"],
             style=custom_style,
-            instruction="(↑↓ Enter)"
+            instruction=" ",
+            use_indicator=False,
+            pointer="►",
+            qmark=""
         ).ask()
         
         return result is not None and "Yes" in result
@@ -415,11 +442,15 @@ class BlackjackUI:
             ('highlighted', 'fg:green bold'),
         ])
         
+        self.console.print(" [bold yellow]✦[/bold yellow] [bold](Use arrow keys)[/bold]")
         questionary.select(
              "",
-             choices=["◂ Back to Menu"],
+             choices=["Back to Menu"],
              style=custom_style,
-             instruction=""
+             instruction=" ",
+             use_indicator=False,
+             pointer="►",
+             qmark=""
         ).ask()
 
     def show_earn_menu(self) -> str:
@@ -435,15 +466,20 @@ class BlackjackUI:
         ])
 
         choices = [
-            "► General Trivia ($3)",
-            "► Custom MCQs ($10)",
-            "◂ Back to Menu"
+            "General Trivia ($3)",
+            "Custom MCQs ($10)",
+            "Back to Menu"
         ]
 
+        self.console.print(" [bold yellow]✦[/bold yellow] [bold](Use arrow keys)[/bold]")
         result = questionary.select(
-            "Select Mode:",
+            "",
             choices=choices,
-            style=custom_style
+            style=custom_style,
+            use_indicator=False,
+            pointer="►",
+            qmark="",
+            instruction=" "
         ).ask()
 
         if result is None or "Back" in result:
@@ -454,8 +490,10 @@ class BlackjackUI:
             return "custom"
         return "back"
 
-    def show_custom_topics_menu(self, topics: list) -> str:
+    def show_custom_topics_menu(self, topics: list, current_chips: int = None, username: str = None) -> str:
         """Show available custom topics."""
+        self.clear_screen()
+        self.print_header(current_chips, username)
         import questionary
         from questionary import Style
 
@@ -467,20 +505,25 @@ class BlackjackUI:
             return None
 
         # topics is list of (name, path)
-        choices = [f"► {t[0]}" for t in topics]
-        choices.append("◂ Back to Menu")
+        choices = [f"{t[0]}" for t in topics]
+        choices.append("Back to Menu")
 
+        self.console.print(" [bold yellow]✦[/bold yellow] [bold](Use arrow keys)[/bold]")
         result = questionary.select(
-            "Select Topic:",
+            "",
             choices=choices,
-            style=custom_style
+            style=custom_style,
+            use_indicator=False,
+            pointer="►",
+            qmark="",
+            instruction=" "
         ).ask()
 
         if result is None or "Back" in result:
             return "back"
         
         # Find path based on selection
-        selected_name = result.replace("► ", "")
+        selected_name = result
         for name, path in topics:
             if name == selected_name:
                 return path
@@ -504,7 +547,7 @@ class BlackjackUI:
         options = list(question_data["options"]) # Copy to avoid modifying original
         
         # Add Exit option
-        exit_opt = "◂ Back to Menu"
+        exit_opt = "Back to Menu"
         options.append(exit_opt)
         
         correct_idx = question_data["correct_index"]
@@ -522,11 +565,16 @@ class BlackjackUI:
             ('selected', 'fg:green'),
         ])
 
+        # No bold for question text to keep it readable, but yellow ✦
+        self.console.print(f" [bold yellow]✦[/bold yellow] {q_text}")
         answer = questionary.select(
-            q_text,
+            "",
             choices=options,
             style=custom_style,
-            instruction="(Select answer)"
+            instruction=" ",
+            use_indicator=False,
+            pointer="►",
+            qmark=""
         ).ask()
 
         if answer is None or answer == exit_opt:

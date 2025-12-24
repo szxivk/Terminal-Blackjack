@@ -205,6 +205,7 @@ class BlackjackGame:
                     continue # Try again (Back to menu)
                     
             elif action == "exit":
+                self.ui.clear_screen()
                 return
 
         # 2. Session / Login Logic
@@ -280,7 +281,7 @@ class BlackjackGame:
                             input("Press Enter to go back...")
                             continue
                             
-                        topic_path = self.ui.show_custom_topics_menu(topics)
+                        topic_path = self.ui.show_custom_topics_menu(topics, self.player.chips, self.player.name)
                         if topic_path == "back":
                             continue
                             
