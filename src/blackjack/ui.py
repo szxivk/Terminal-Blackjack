@@ -61,8 +61,25 @@ class BlackjackUI:
     def show_backup_selection(self, backups: list) -> any:
         """Show menu to select a backup file."""
         import questionary
-        choices = [b.name for b in backups]
-        choices.append("Cancel")
+        
+        choices = []
+        for b in backups:
+            name_parts = b.name.split('-')
+            # Format: save-USERNAME-TIMESTAMP (e.g., save-Alice-2023-12-23-06-34-29)
+            # Legacy: save-TIMESTAMP (e.g., save-1 or save-2023-12-23-...)
+            
+            if len(name_parts) >= 8: # save + username + 6 date parts
+                username = name_parts[1]
+                timestamp = "-".join(name_parts[2:])
+                display_name = f"{username} ({timestamp})"
+            elif len(name_parts) >= 7: # Maybe legacy timestamped? save-2025...
+                display_name = f"Unknown ({'-'.join(name_parts[1:])})"
+            else:
+                display_name = b.name
+            
+            choices.append(questionary.Choice(title=display_name, value=b))
+            
+        choices.append(questionary.Choice(title="Cancel", value="CANCEL"))
         
         choice = questionary.select(
             "Select a backup to restore:",
@@ -72,9 +89,9 @@ class BlackjackUI:
             pointer="►"
         ).ask()
         
-        if choice == "Cancel":
+        if choice == "CANCEL":
             return None
-        return next((b for b in backups if b.name == choice), None)
+        return choice
 
     def print_header(self, chips: int = None, username: str = None):
         """Display the game title header."""

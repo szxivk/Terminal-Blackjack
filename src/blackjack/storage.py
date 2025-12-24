@@ -118,10 +118,15 @@ def find_latest_backup() -> Optional[Path]:
     backups = get_available_backups()
     return backups[0] if backups else None
 
-def get_next_backup_path() -> Path:
-    """Creates a timestamped backup path."""
+def get_next_backup_path(username: str = "unknown") -> Path:
+    """Creates a timestamped backup path with username."""
+    # Sanitize username
+    safe_username = "".join(c for c in username if c.isalnum() or c in ('-', '_')).strip()
+    if not safe_username:
+        safe_username = "unknown"
+        
     timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    return BACKUP_ROOT / f"save-{timestamp}"
+    return BACKUP_ROOT / f"save-{safe_username}-{timestamp}"
 
 def save_current_game() -> bool:
     """
@@ -151,7 +156,8 @@ def save_current_game() -> bool:
             target_dir.touch()
         else:
             # Create new save
-            target_dir = get_next_backup_path()
+            current_user = load_session()
+            target_dir = get_next_backup_path(current_user if current_user else "unknown")
             shutil.copytree(DATA_DIR, target_dir, dirs_exist_ok=True)
             CURRENT_SAVE_SLOT = target_dir
             

@@ -167,37 +167,43 @@ class BlackjackGame:
         # Always show menu
         backup_name = latest_backup.name if latest_backup else None
         
-        self.ui.clear_screen()
-        self.show_title(with_chips=False, with_username=False)
-        
-        action = self.ui.show_start_menu(backup_name)
-        
-        if action == "continue":
-            self.ui.console.print(f"[green]Restoring {latest_backup.name}...[/green]")
-            if storage.restore_data(latest_backup):
-                time.sleep(0.5)
-            else:
-                self.ui.console.print("[red]Failed to restore backup![/red]")
-                time.sleep(2)
-                
-        elif action == "new":
-            self.ui.console.print("[yellow]Starting fresh...[/yellow]")
-            storage.reset_data()
-            time.sleep(0.5)
+        while True:
+            self.ui.clear_screen()
+            self.show_title(with_chips=False, with_username=False)
             
-        elif action == "load":
-            selected_backup = self.ui.show_backup_selection(backups)
-            if selected_backup:
-                self.ui.console.print(f"[green]Restoring {selected_backup.name}...[/green]")
-                if storage.restore_data(selected_backup):
+            action = self.ui.show_start_menu(backup_name)
+            
+            if action == "continue":
+                self.ui.console.print(f"[green]Restoring {latest_backup.name}...[/green]")
+                if storage.restore_data(latest_backup):
                     time.sleep(0.5)
                 else:
                     self.ui.console.print("[red]Failed to restore backup![/red]")
                     time.sleep(2)
-            else:
-                return # Exit if cancelled
-        elif action == "exit":
-            return
+                break
+                    
+            elif action == "new":
+                self.ui.console.print("[yellow]Starting fresh...[/yellow]")
+                storage.reset_data()
+                time.sleep(0.5)
+                break
+                
+            elif action == "load":
+                selected_backup = self.ui.show_backup_selection(backups)
+                if selected_backup:
+                    self.ui.console.print(f"[green]Restoring {selected_backup.name}...[/green]")
+                    if storage.restore_data(selected_backup):
+                        time.sleep(0.5)
+                        break
+                    else:
+                        self.ui.console.print("[red]Failed to restore backup![/red]")
+                        time.sleep(2)
+                        break
+                else:
+                    continue # Try again (Back to menu)
+                    
+            elif action == "exit":
+                return
 
         # 2. Session / Login Logic
         last_user = storage.load_session()
