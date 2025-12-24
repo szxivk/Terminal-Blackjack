@@ -10,7 +10,46 @@ from typing import Optional, Dict, List
 DATA_DIR = Path.home() / ".terminal_blackjack"
 DATA_FILE = DATA_DIR / "players.json"
 SESSION_FILE = DATA_DIR / "session.json"
-BACKUP_ROOT = Path.home() / "Documents" / "pybjack-saves"
+BACKUP_ROOT = DATA_DIR / "saves"
+
+# ... (Previous code remains, but need to check if BACKUP_ROOT usage is consistent)
+# Actually, I am editing the file content. I should only specificy the chunk.
+
+# Skipping lines 15-184...
+
+def reset_data(keep_saves: bool = False) -> bool:
+    """
+    Deletes the current data directory.
+    If keep_saves is True, preserves the saves directory.
+    """
+    global CURRENT_SAVE_SLOT
+    CURRENT_SAVE_SLOT = None
+    
+    if not DATA_DIR.exists():
+        return True
+    
+    try:
+        if keep_saves:
+            # Delete specific files/dirs but keep saves
+            if DATA_FILE.exists():
+                os.remove(DATA_FILE)
+            if SESSION_FILE.exists():
+                os.remove(SESSION_FILE)
+            
+            questions_dir = DATA_DIR / "questions"
+            if questions_dir.exists():
+                shutil.rmtree(questions_dir)
+            
+            # Note: We rely on BACKUP_ROOT being inside DATA_DIR.
+            # If any other files exist, they might persist, but main data is gone.
+            
+        else:
+            # Full wipe
+            shutil.rmtree(DATA_DIR)
+            
+        return True
+    except Exception:
+        return False
 
 def _get_data_path() -> Path:
     """Ensure data directory exists and return path to data file."""
@@ -151,14 +190,16 @@ def save_current_game() -> bool:
         if target_dir and target_dir.exists():
             # Update existing save
             # We use copytree with dirs_exist_ok=True to overwrite
-            shutil.copytree(DATA_DIR, target_dir, dirs_exist_ok=True)
+            # CRITICAL: Ignore 'saves' directory to prevent recursive copying of backup folder into itself
+            shutil.copytree(DATA_DIR, target_dir, dirs_exist_ok=True, ignore=shutil.ignore_patterns("saves"))
             # Touch the directory to update modification time
             target_dir.touch()
         else:
             # Create new save
             current_user = load_session()
             target_dir = get_next_backup_path(current_user if current_user else "unknown")
-            shutil.copytree(DATA_DIR, target_dir, dirs_exist_ok=True)
+            # CRITICAL: Ignore 'saves' directory
+            shutil.copytree(DATA_DIR, target_dir, dirs_exist_ok=True, ignore=shutil.ignore_patterns("saves"))
             CURRENT_SAVE_SLOT = target_dir
             
         return True
@@ -180,23 +221,51 @@ def restore_data(source_dir: Optional[Path] = None) -> bool:
         return False
     
     try:
-        if DATA_DIR.exists():
-            shutil.rmtree(DATA_DIR)
-        shutil.copytree(source_dir, DATA_DIR)
+        # CRITICAL: Do NOT delete DATA_DIR if BACKUP_ROOT is inside it!
+        # Instead, clean up specific game files before restoring.
+        if DATA_FILE.exists():
+            os.remove(DATA_FILE)
+        if SESSION_FILE.exists():
+            os.remove(SESSION_FILE)
+            
+        questions_dir = DATA_DIR / "questions"
+        if questions_dir.exists():
+            shutil.rmtree(questions_dir)
+            
+        # Restore data
+        shutil.copytree(source_dir, DATA_DIR, dirs_exist_ok=True, ignore=shutil.ignore_patterns("saves"))
         CURRENT_SAVE_SLOT = source_dir
         return True
     except Exception:
         return False
 
-def reset_data() -> bool:
-    """Deletes the current data directory."""
+def reset_data(keep_saves: bool = False) -> bool:
+    """
+    Deletes the current data directory.
+    If keep_saves is True, preserves the saves directory.
+    """
     global CURRENT_SAVE_SLOT
     CURRENT_SAVE_SLOT = None
     
-    if DATA_DIR.exists():
-        try:
+    if not DATA_DIR.exists():
+        return True
+    
+    try:
+        if keep_saves:
+            # Delete specific files/dirs but keep saves
+            if DATA_FILE.exists():
+                os.remove(DATA_FILE)
+            if SESSION_FILE.exists():
+                os.remove(SESSION_FILE)
+            
+            questions_dir = DATA_DIR / "questions"
+            if questions_dir.exists():
+                shutil.rmtree(questions_dir)
+            
+        else:
+            # Full wipe
             shutil.rmtree(DATA_DIR)
-            return True
-        except Exception:
-            return False
-    return True
+            
+        return True
+    except Exception:
+        return False

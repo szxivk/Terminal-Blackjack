@@ -26,12 +26,12 @@ def main():
                 print(f"No data found at {data_dir}")
                 return
 
-            print(f"WARNING: This will permanently delete all data at {data_dir}")
+            print(f"WARNING: This will permanently delete ALL game data and SAVE FILES at {data_dir}")
             
             confirm = input("Are you sure you want to proceed? (yes/no): ").lower()
             if confirm in ("yes", "y"):
-                if storage.reset_data():
-                    print("Game data has been successfully reset.")
+                if storage.reset_data(keep_saves=False):
+                    print("Data reset complete. Run 'pybjack' to start a fresh game.")
                 else:
                     print("Error resetting data.")
             else:
@@ -41,18 +41,17 @@ def main():
         # --- UNINSTALL COMMAND ---
         elif arg in ("-remove", "--remove"):
             print("This will remove the game.")
-            backup_choice = input("Would you like to backup your save data first? (yes/no): ").lower()
             
-            if backup_choice in ("yes", "y"):
-                if storage.backup_data():
-                    print(f"Backup created at {storage.find_latest_backup()}")
-                else:
-                    print("Backup failed.")
+            keep_choice = input("Do you want to KEEP your save files? (yes/no): ").lower()
+            keep_saves = keep_choice in ("yes", "y")
             
             confirm_uninstall = input("Are you sure you want to uninstall the game? (yes/no): ").lower()
             if confirm_uninstall in ("yes", "y"):
-                storage.reset_data()
-                print("Local data removed.")
+                if storage.reset_data(keep_saves=keep_saves):
+                    print("Local data removed.")
+                else:
+                    print("Warning: Could not fully clean up data directory.")
+                    
                 uninstall_game()
             else:
                 print("Uninstall cancelled.")

@@ -177,14 +177,16 @@ class BlackjackGame:
                 self.ui.console.print(f"[green]Restoring {latest_backup.name}...[/green]")
                 if storage.restore_data(latest_backup):
                     time.sleep(0.5)
+                    break
                 else:
                     self.ui.console.print("[red]Failed to restore backup![/red]")
                     time.sleep(2)
-                break
+                    # Loop back to menu
                     
             elif action == "new":
                 self.ui.console.print("[yellow]Starting fresh...[/yellow]")
-                storage.reset_data()
+                # CRITICAL: keep_saves=True ensures we don't delete existing backups when starting a new game
+                storage.reset_data(keep_saves=True)
                 time.sleep(0.5)
                 break
                 
@@ -198,7 +200,7 @@ class BlackjackGame:
                     else:
                         self.ui.console.print("[red]Failed to restore backup![/red]")
                         time.sleep(2)
-                        break
+                        # Loop back to menu
                 else:
                     continue # Try again (Back to menu)
                     
