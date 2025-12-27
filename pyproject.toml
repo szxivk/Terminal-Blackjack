@@ -20,6 +20,9 @@ dependencies = [
 ]
 requires-python = ">=3.7"
 
+[project.optional-dependencies]
+dev = ["pytest"]
+
 [project.scripts]
 pybjack = "blackjack.__main__:main"
 blackjack = "blackjack.__main__:main"
