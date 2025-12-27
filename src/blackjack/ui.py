@@ -1,9 +1,8 @@
-from rich.console import Console, Group
+from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 from rich.prompt import Prompt
-from rich.align import Align
 from rich import box
 import os
 
@@ -423,11 +422,8 @@ class BlackjackUI:
     def show_about_page(self):
         """Display the about page."""
         self.clear_screen()
-        # Assuming print_header exists or will be added. If not, this will cause an error.
-        # For now, commenting it out to ensure syntactical correctness with the provided document.
         self.print_header() 
         from .about import ABOUT_TEXT, RULES_TEXT
-        from rich.panel import Panel
         content = Text()
         
         # About section
