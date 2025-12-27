@@ -202,6 +202,8 @@ class BlackjackGame:
                         time.sleep(2)
                         # Loop back to menu
                 else:
+                    self.ui.console.print("[yellow]Returning to menu...[/yellow]")
+                    time.sleep(0.5)
                     continue # Try again (Back to menu)
                     
             elif action == "exit":

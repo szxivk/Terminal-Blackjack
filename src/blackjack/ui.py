@@ -76,17 +76,36 @@ class BlackjackUI:
         choices = []
         for b in backups:
             name_parts = b.name.split('-')
-            # Format: save-USERNAME-TIMESTAMP (e.g., save-Alice-2023-12-23-06-34-29)
-            # Legacy: save-TIMESTAMP (e.g., save-1 or save-2023-12-23-...)
+            # Try to read username from players.json inside the backup
+            player_name = "Unknown"
+            try:
+                p_file = b / "players.json"
+                if p_file.exists():
+                    import json
+                    with open(p_file, 'r') as f:
+                        data = json.load(f)
+                        # data is {hash: {name: ..., chips: ...}}
+                        # Since backups usually isolate single users, pick the first
+                        if data:
+                            first_key = list(data.keys())[0]
+                            player_name = data[first_key].get("name", "Unknown")
+            except Exception:
+                pass
+
+            # Fallback to filename parsing if reading failed or yielded Unknown
+            if player_name == "Unknown":
+                if len(name_parts) >= 8:
+                    player_name = name_parts[1]
             
-            if len(name_parts) >= 8: # save + username + 6 date parts
-                username = name_parts[1]
-                timestamp = "-".join(name_parts[2:])
-                display_name = f"{username} ({timestamp})"
-            elif len(name_parts) >= 7: # Maybe legacy timestamped? save-2025...
-                display_name = f"Unknown ({'-'.join(name_parts[1:])})"
+            # Extract timestamp from folder name for display
+            # Format usually: save-NAME-YYYY-MM... or save-YYYY...
+            # We look for the date part (6 digits at end)
+            if len(name_parts) >= 7:
+                timestamp = "-".join(name_parts[-6:])
             else:
-                display_name = b.name
+                timestamp = "legacy"
+
+            display_name = f"{player_name} ({timestamp})"
             
             choices.append(questionary.Choice(title=display_name, value=b))
             
