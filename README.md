@@ -4,7 +4,7 @@
 
 A feature-rich Python application that combines a beautiful terminal UI with serious functionality. Includes multi-user profile management, auto-backups to prevent data loss, and an integrated Trivia Engine to earn in-game currency. Built to prove that terminal apps can be as beautiful as they are functional.
 
-![Terminal Blackjack](https://img.shields.io/badge/Made%20with-Rich-blueviolet?style=flat-square) ![Python](https://img.shields.io/badge/Python-3.12+-blue?style=flat-square) ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
+![Terminal Blackjack](https://img.shields.io/badge/Made%20with-Rich-blueviolet?style=flat-square) ![Python](https://img.shields.io/badge/Python-3.12+-blue?style=flat-square) ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square) ![Status](https://img.shields.io/badge/Status-Complete-green)
 
 ## Features
 
@@ -90,3 +90,4 @@ All game data is stored securely in your home directory:
 
 ---
 **by szxivk**
+
