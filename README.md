@@ -4,7 +4,7 @@
 
 A feature-rich Python application that combines a beautiful terminal UI with serious functionality. Includes multi-user profile management, auto-backups to prevent data loss, and an integrated Trivia Engine to earn in-game currency. Built to prove that terminal apps can be as beautiful as they are functional.
 
-![Terminal Blackjack](https://img.shields.io/badge/Made%20with-Rich-blueviolet?style=flat-square) ![Python](https://img.shields.io/badge/Python-3.12+-blue?style=flat-square) ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square) ![Status](https://img.shields.io/badge/Status-Complete-green)
+![Terminal Blackjack](https://img.shields.io/badge/Made_with-Rich-blueviolet?style=flat) ![Python](https://img.shields.io/badge/Python-3.12+-blue?style=flat) ![License](https://img.shields.io/badge/License-MIT-green?style=flat) ![Status](https://img.shields.io/badge/Status-Complete-green?style=flat)
 
 ## Features
 
@@ -20,6 +20,14 @@ Key Engineering Highlights:
     -   **Custom Topics**: add your own JSON quizzes.
 - **CLI Power**: Manage game data directly from the terminal.
 - **Distribution:** Full `pip` installable package structure.
+
+## Screenshots
+
+### Main Menu
+![Main Menu](screenshots/menu.png)
+
+### Gameplay
+![Gameplay](screenshots/gameplay.png)
 
 ## Installation
 
