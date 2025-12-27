@@ -70,6 +70,23 @@ def main():
             print("Please run 'pybjack' to access the Restore menu.")
             return
 
+        # --- HELP COMMAND ---
+        elif arg in ("-h", "-help", "--help"):
+            print("Terminal Blackjack by szxivk")
+            print("Usage: pybjack [COMMAND]")
+            print()
+            print("Commands:")
+            print("  (no args)   Start the game")
+            print("  -reset      Fully reset all game data and saves")
+            print("  -remove     Uninstall the game (optional: keep saves)")
+            print("  -help       Show this help message")
+            return
+        
+        else:
+            print(f"Unknown command: {arg}")
+            print("Run 'pybjack --help' for available commands.")
+            return
+
     # START GAME
     # The 'check for backups' and 'startup menu' logic is now inside BlackjackGame.run()
     game = BlackjackGame()
