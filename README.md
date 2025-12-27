@@ -41,7 +41,7 @@ Key Engineering Highlights:
    ```bash
    pip install .
    ```
-   *(Note: You can also use pipx install . if you prefer an isolated installation)*
+   *(Note: Need to setup a virtual env first)*
 
 ## Usage
 
@@ -98,4 +98,5 @@ All game data is stored securely in your home directory:
 
 ---
 **by szxivk**
+
 
