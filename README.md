@@ -1,52 +1,92 @@
 # Terminal Blackjack
 
-A beautiful, simplified terminal-based Blackjack game written in Python.
+**The classic casino experience, re-engineered for the command line.**
+
+A feature-rich Python application that combines a beautiful terminal UI with serious functionality. Includes multi-user profile management, auto-backups to prevent data loss, and an integrated Trivia Engine to earn in-game currency. Built to prove that terminal apps can be as beautiful as they are functional.
+
+![Terminal Blackjack](https://img.shields.io/badge/Made%20with-Rich-blueviolet?style=flat-square) ![Python](https://img.shields.io/badge/Python-3.12+-blue?style=flat-square) ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 
 ## Features
 
-- **Beautiful UI**: Powered by [Rich](https://pypi.org/project/rich/)
-- **Arrow Key Navigation**: Intuitive menu system and gameplay using [Questionary](https://pypi.org/project/questionary/)
-- **Player Persistence**: Your chips are saved locally and restored on return
+Key Engineering Highlights:
+* **Modern TUI:** Built with [Rich](https://pypi.org/project/rich/) and [Questionary](https://pypi.org/project/questionary/) for a polished visual experience.
 
-
-## Requirements
-
-- **Python**: 3.12+ (tested on Python 3.12.1)
-- **Dependencies**:
-  - `rich==14.2.0` - Terminal UI framework
-  - `questionary==2.1.1` - Arrow key menu navigation
+- **Robust Save System**: 
+    -   **Multi-User Support**: Create separate profiles for different players.
+    -   **Auto-Save**: Progress is saved automatically after every round.
+    -   **Smart Backups**: Timestamped backups allow you to restore previous sessions.
+- **Trivia Mode**: running low on cash? Earn free chips by answering trivia questions!
+    -   **General Knowledge**: Built-in questions.
+    -   **Custom Topics**: add your own JSON quizzes.
+- **CLI Power**: Manage game data directly from the terminal.
+- **Distribution:** Full `pip` installable package structure.
 
 ## Installation
 
-1. Clone the repository
-2. Create and activate a virtual environment (recommended):
+1. **Clone the repository**:
    ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   git clone https://github.com/szxivk/Terminal-Blackjack.git
+   cd Terminal-Blackjack
    ```
-3. Install the required dependencies:
+
+2. **Install the package**:
    ```bash
-   pip install rich questionary
+   pip install .
    ```
-   Or use the requirements file:
-   ```bash
-   pip install -r requirements.txt
-   ```
+   *(Note: You can also use pipx install . if you prefer an isolated installation)*
 
 ## Usage
 
-Start the game by running:
+Once installed, you can launch the game from anywhere in your terminal:
 
 ```bash
-python3 main.py
+pybjack
 ```
 
-Use arrow keys (↑↓) to navigate menus and select options. Press Enter to confirm your choice.
+### CLI Commands
 
-## Game Data
+- **Start Game**: `pybjack`
+-   **Help**: `pybjack -help` (Show all available commands)
+-   **Reset Data**: `pybjack -reset` (Wipes all saves and settings)
+-   **Uninstall**: `pybjack -remove` (Clean uninstallation, optionally keeps saves)
 
-Player data is stored locally in `~/.terminal_blackjack/players.json`. Your chips are automatically saved after each round.
+## How to Play
+
+1.  **Objective**: Beat the dealer's hand without going over 21.
+2.  **Unlocks**:
+    -   **Earn Chips**: Answer trivia questions to build your bankroll.
+3.  **Controls**:
+    -   Use **Arrow Keys** (↑/↓) to navigate menus.
+    -   Press **Enter** to select.
+
+## Custom Trivia
+
+You can add your own trivia questions!
+
+1.  Navigate to `~/.terminal_blackjack/questions/`.
+2.  Create a new JSON file (e.g., `history.json`).
+3.  Format it like this:
+    ```json
+    {
+        "topic": "History",
+        "questions": [
+            {
+                "question": "Who was the first US President?",
+                "options": ["Lincoln", "Washington", "Jefferson", "Adams"],
+                "correct_index": 1
+            }
+        ]
+    }
+    ```
+4.  Launch the game, go to **Earn Chips > Custom MCQs**, and select your topic!
+
+
+## Security & Privacy
+
+-   **Local Only**: All data (chips, saves, sessions) is stored locally on your machine. No data is sent to any external server.
+All game data is stored securely in your home directory:
+`~/.terminal_blackjack/`
+-   **Open Source**: The code is fully transparent and open source.
 
 ---
 **by szxivk**
-
